@@ -1,0 +1,15 @@
+[project]
+name = "ocbot"
+version = "0.1.0"
+description = "Pilot Solution for Used Electronics Discovery"
+requires-python = ">=3.13"
+
+[tool.ruff]
+indent-width = 4
+exclude = ["tools/"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "C4", "SIM"]
+
+[tool.ruff.format]
+indent-style = "space"

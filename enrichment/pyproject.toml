@@ -1,0 +1,69 @@
+[project]
+name = "enrichment"
+version = "0.1.0"
+description = "Enrichment service for OCBot - LLM-powered extraction of structured product items"
+requires-python = ">=3.13"
+
+dependencies = [
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.30.0",
+    "sqlalchemy[asyncio]>=2.0",
+    "asyncpg>=0.29.0",
+    "pgvector>=0.2.0",
+    "instructor>=1.14.5",
+    "openai>=1.40",
+    "langchain-core>=0.3",
+    "langchain-openai>=0.2",
+    "sentence-transformers>=3.0.0",
+    "torch>=2.0.0",
+    "pydantic>=2.8",
+    "pydantic-settings>=2.4",
+    "structlog>=24.4",
+    "tenacity>=9.0",
+]
+
+[tool.uv]
+package = true
+
+[tool.uv.sources]
+torch = [
+    { index = "pytorch-cpu" },
+]
+shared = { path = "../shared", editable = true }
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["enrichment"]
+
+[project.scripts]
+enrichment = "enrichment.main:app"
+
+[project.optional-dependencies]
+test = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+    "pytest-mock>=3.14",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+asyncio_mode = "auto"
+
+[tool.ruff]
+indent-width = 4
+line-length = 130
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "C4", "SIM"]
+
+[tool.ruff.format]
+indent-style = "space"

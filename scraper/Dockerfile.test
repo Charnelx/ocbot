@@ -1,0 +1,26 @@
+FROM ghcr.io/astral-sh/uv:python3.13-bookworm-slim
+
+WORKDIR /app
+
+ENV UV_COMPILE_BYTECODE=1
+ENV UV_LINK_MODE=copy
+
+# 1. Copy dependency manifests
+COPY scraper/pyproject.toml scraper/uv.lock ./
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync
+
+# 2. Source code + tests (tests ONLY included here)
+COPY shared/shared ./shared/
+COPY scraper/scraper ./scraper/
+COPY scraper/tests ./tests/
+
+# 3. Install project + test dependencies
+# First sync without frozen to resolve test extras, then lock
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --extra test
+
+ENV PATH="/app/.venv/bin:$PATH"
+
+# Default: run tests with coverage
+CMD ["pytest", "-v", "--cov=scraper", "--cov-report=term-missing"]

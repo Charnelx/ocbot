@@ -1,0 +1,163 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: ocbot_postgres
+    env_file:
+      - .env
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-ocbot}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app_net
+
+  # Migration service - run with: docker compose up --build migration
+#  migration:
+#    build:
+#      context: ./shared
+#      dockerfile: Dockerfile.migration
+#    env_file:
+#      - .env
+#    depends_on:
+#      postgres:
+#        condition: service_healthy
+#    networks:
+#      - app_net
+
+  scraper:
+    build:
+      context: .
+      dockerfile: scraper/Dockerfile
+    env_file:
+      - .env
+    environment:
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - HF_HOME=/app/models
+    volumes:
+      - model_cache:/app/models
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    networks:
+      - app_net
+
+  enrichment:
+    build:
+      context: .
+      dockerfile: enrichment/Dockerfile
+    env_file:
+      - .env
+    environment:
+      - HF_HOME=/app/models
+    volumes:
+      - model_cache:/app/models
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8001:8001"
+    networks:
+      - app_net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+    restart: unless-stopped
+
+  search:
+    build:
+      context: .
+      dockerfile: search/Dockerfile
+    env_file:
+      - .env
+    environment:
+      - HF_HOME=/app/models
+    volumes:
+      - model_cache:/app/models
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8002:8002"
+    networks:
+      - app_net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    expose:
+      - "3000"
+    depends_on:
+      - search
+    networks:
+      - app_net
+
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: ocbot_n8n
+    env_file:
+      - .env
+    environment:
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=${N8N_USER:-admin}
+      - N8N_BASIC_AUTH_PASSWORD=${N8N_PASSWORD:-admin}
+      - N8N_HOST=0.0.0.0
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - WEBHOOK_URL=http://n8n:5678
+    volumes:
+      - n8n_data:/home/node/.n8n
+    ports:
+      - "5678:5678"
+    networks:
+      - app_net
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  nginx:
+    build:
+      context: .
+      dockerfile: nginx/Dockerfile
+    ports:
+      - "3000:80"
+    depends_on:
+      - frontend
+      - search
+      - scraper
+      - enrichment
+    networks:
+      - app_net
+
+volumes:
+  pgdata:
+    name: ocbot_pgdata
+  model_cache:
+    name: ocbot_model_cache
+  n8n_data:
+    name: ocbot_n8n_data
+
+networks:
+  app_net:
+    name: ocbot_app_net

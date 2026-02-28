@@ -1,0 +1,14 @@
+FROM python:3.13-slim
+
+WORKDIR /app
+
+RUN pip install --no-cache-dir uv
+
+COPY pyproject.toml ./
+COPY shared ./shared/
+
+RUN uv sync
+
+COPY shared/db/alembic.ini .
+
+CMD ["uv", "run", "alembic", "-c", "alembic.ini", "upgrade", "head"]

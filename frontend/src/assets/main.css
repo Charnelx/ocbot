@@ -1,0 +1,51 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-primary: oklch(0.65 0.24 354.31);
+  --color-brand-secondary: oklch(0.72 0.11 178);
+
+  --color-category-cpu: oklch(0.6 0.2 220);
+  --color-category-gpu: oklch(0.55 0.22 140);
+  --color-category-ram: oklch(0.65 0.22 90);
+  --color-category-ssd: oklch(0.6 0.22 280);
+  --color-category-hdd: oklch(0.5 0.15 200);
+  --color-category-psu: oklch(0.55 0.18 45);
+  --color-category-monitor: oklch(0.6 0.2 260);
+  --color-category-laptop: oklch(0.65 0.15 230);
+  --color-category-case: oklch(0.45 0.1 30);
+  --color-category-soundcard: oklch(0.6 0.15 320);
+  --color-category-other: oklch(0.5 0.08 250);
+
+  --font-sans: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+body {
+  font-family: var(--font-sans);
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+:root {
+  --pcb-bg: #e8e8e8;
+  --pcb-bg-opacity: 0.85;
+  --pcb-grid: rgba(100,100,100,0.10);
+  --pcb-node: rgba(80, 80, 80,0.22);
+  --pcb-chip-bg: #f2f2f2;
+  --pcb-chip-bdr: rgba(80, 80, 80,0.40);
+  --pcb-chip-pin: rgba(80, 80, 80,0.40);
+  --pcb-chip-text: rgba(30, 30, 30,0.88);
+  --pcb-chip-sub: rgba(80, 80, 80,0.58);
+}
+
+.dark {
+  --pcb-bg: #1a1a1a;
+  --pcb-bg-opacity: 0.85;
+  --pcb-grid: rgba(100,100,100,0.15);
+  --pcb-node: rgba(80, 80, 80,0.30);
+  --pcb-chip-bg: #2a2a2a;
+  --pcb-chip-bdr: rgba(80, 80, 80,0.50);
+  --pcb-chip-pin: rgba(80, 80, 80,0.50);
+  --pcb-chip-text: rgba(200, 200, 200,0.90);
+  --pcb-chip-sub: rgba(120, 120, 120,0.60);
+}

@@ -1,0 +1,181 @@
+{
+  "name": "OCBot Scraping Pipeline (Simplified)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 15
+            }
+          ]
+        }
+      },
+      "id": "schedule",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://scraper:8000/scrape",
+        "body": {
+          "page_count": 1,
+          "webhook_url": "http://n8n:5678/webhook/scraper-done"
+        },
+        "options": {
+          "timeout": 300000
+        }
+      },
+      "id": "scrape",
+      "name": "Scrape Topics",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "scraper-done",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "webhook_scrape",
+      "name": "Wait for Scraping",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://enrichment:8001/enrich",
+        "body": {
+          "webhook_url": "http://n8n:5678/webhook/enrich-done"
+        },
+        "options": {
+          "timeout": 300000
+        }
+      },
+      "id": "enrich",
+      "name": "Enrich Items",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "enrich-done",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "webhook_enrich",
+      "name": "Wait for Enrichment",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [1050, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://search:8002/maintenance/recompute-stats"
+      },
+      "id": "recompute_stats",
+      "name": "Recompute Stats",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1250, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://search:8002/maintenance/cleanup-labels"
+      },
+      "id": "cleanup_labels",
+      "name": "Cleanup Labels",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1450, 300]
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Scrape Topics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Scrape Topics": {
+      "main": [
+        [
+          {
+            "node": "Wait for Scraping",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait for Scraping": {
+      "main": [
+        [
+          {
+            "node": "Enrich Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enrich Items": {
+      "main": [
+        [
+          {
+            "node": "Wait for Enrichment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait for Enrichment": {
+      "main": [
+        [
+          {
+            "node": "Cleanup Labels",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cleanup Labels": {
+      "main": [
+        [
+          {
+            "node": "Recompute Stats",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 1,
+  "updatedAt": "2026-02-27T00:00:00.000Z",
+  "versionId": "1"
+}
