@@ -23,6 +23,7 @@ class SearchModeUsed(str, Enum):  # noqa: UP042
     SIMPLE = "simple"
     SMART = "smart"
     SMART_FALLBACK = "smart_fallback"
+    LATEST = "latest"
 
 
 class AgentClassification(BaseModel):

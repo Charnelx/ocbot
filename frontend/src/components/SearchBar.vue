@@ -24,7 +24,10 @@ const statusMessage = computed(() => {
   return null
 })
 
-const isCountZero = computed(() => props.totalMatches !== null && props.totalMatches === 0)
+const isCountZero = computed(() => {
+  if (!query.value.trim()) return false
+  return props.totalMatches !== null && props.totalMatches === 0
+})
 
 function handleSubmit(e: Event) {
   e.preventDefault()
@@ -56,13 +59,13 @@ function handleSubmit(e: Event) {
         type="submit"
         class="px-4 py-2 font-medium rounded-lg transition-colors flex items-center gap-2"
         :class="[
-          isCountZero
+          isCountZero && query.trim()
             ? 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
             : 'bg-blue-500 hover:bg-blue-600 text-white',
           isLoading ? 'opacity-50 cursor-wait' : ''
         ]"
-        :disabled="isLoading || !query.trim()"
-        :title="isCountZero ? 'No listings match the current filters.' : undefined"
+        :disabled="isLoading"
+        :title="isCountZero && query.trim() ? 'No listings match the current filters.' : undefined"
       >
         <svg
           v-if="isLoading"

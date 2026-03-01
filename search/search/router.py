@@ -43,7 +43,7 @@ async def get_stats() -> StatsResponse:
 
 @router.get("/api/search", response_model=SearchResponse)
 async def search(
-    q: str = Query(..., max_length=settings.max_query_chars),
+    q: str = Query(default="", max_length=settings.max_query_chars),
     mode: Literal["simple", "smart"] = "simple",
     category: list[str] | None = Query(default=None),  # noqa: B008
     price_min: float | None = Query(default=None, ge=0),  # noqa: B008
