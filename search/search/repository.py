@@ -137,6 +137,86 @@ async def search_items_simple(
     return items, total_filtered, total_matches
 
 
+async def search_items_latest(
+    filters: SearchFilters,
+) -> tuple[list[ItemResult], int, int]:
+    filter_clauses = build_filter_clauses(filters, Item, Topic)
+
+    async with async_session_factory() as session:
+        stmt = (
+            select(
+                Item.id.label("item_id"),
+                Item.topic_id,
+                Item.title,
+                Item.raw_text_segment,
+                Item.category,
+                Item.labels,
+                Item.price,
+                Item.currency,
+                Item.is_standalone,
+                Topic.author,
+                Topic.last_update_at.label("topic_last_update_at"),
+                Topic.created_at.label("topic_created_at"),
+                Topic.external_id,
+                literal(1.0).label("distance"),
+                literal(0.0).label("fts_rank"),
+                literal(0).label("matched_count"),
+            )
+            .join(Topic, Item.topic_id == Topic.id)
+            .where(*_get_topic_existence_filter(), *filter_clauses)
+            .order_by(Topic.created_at.desc())
+        )
+
+        if filters.limit is not None:
+            stmt = stmt.limit(filters.limit)
+
+        stmt = stmt.offset(filters.offset)
+
+        result = await session.execute(stmt)
+        rows = result.all()
+
+        count_filtered_stmt = (
+            select(func.count())
+            .select_from(Item)
+            .join(Topic, Item.topic_id == Topic.id)
+            .where(*_get_topic_existence_filter(), *filter_clauses)
+        )
+        count_filtered_result = await session.execute(count_filtered_stmt)
+        total_filtered = count_filtered_result.scalar() or 0
+
+        count_matches_stmt = (
+            select(func.count())
+            .select_from(Item)
+            .join(Topic, Item.topic_id == Topic.id)
+            .where(*_get_topic_existence_filter())
+        )
+        count_matches_result = await session.execute(count_matches_stmt)
+        total_matches = count_matches_result.scalar() or 0
+
+    items = [
+        ItemResult(
+            item_id=row.item_id,
+            topic_id=row.topic_id,
+            external_id=row.external_id,
+            title=row.title,
+            raw_text_segment=row.raw_text_segment,
+            category=row.category,
+            labels=row.labels or [],
+            price=float(row.price) if row.price else None,
+            currency=row.currency,
+            is_standalone=row.is_standalone,
+            author=row.author,
+            last_update_at=row.topic_last_update_at,
+            created_at=row.topic_created_at,
+            distance=row.distance,
+            matched_count=row.matched_count,
+        )
+        for row in rows
+    ]
+
+    return items, total_filtered, total_matches
+
+
 async def search_items_smart(
     query_vec: list[float],
     category: str,

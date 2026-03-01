@@ -1,6 +1,6 @@
 export type SearchMode = 'simple' | 'smart'
 
-export type SearchModeUsed = 'simple' | 'smart' | 'smart_fallback'
+export type SearchModeUsed = 'simple' | 'smart' | 'smart_fallback' | 'latest'
 
 export type SortOrder = 'relevance' | 'price_asc' | 'price_desc' | 'newest' | 'oldest' | 'updated'
 
@@ -75,7 +75,7 @@ export const DEFAULT_FILTERS: SearchFilters = {
   dateFrom: null,
   dateTo: null,
   sort: 'relevance',
-  limit: null,
+  limit: 20,
   offset: 0,
   minScore: 0.6,
   scoreAutoTune: true,

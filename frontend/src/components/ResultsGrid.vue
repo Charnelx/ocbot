@@ -1,11 +1,59 @@
 <script setup lang="ts">
+import { ref, onMounted, onUnmounted, watch } from 'vue'
 import ItemCard from './ItemCard.vue'
 import type { SearchResultItem } from '../types/search'
 
-defineProps<{
+const props = defineProps<{
   results: SearchResultItem[]
   isLoading: boolean
+  isLoadingMore: boolean
+  hasMore: boolean
 }>()
+
+const emit = defineEmits<{
+  loadMore: []
+}>()
+
+const sentinel = ref<HTMLElement | null>(null)
+let observer: IntersectionObserver | null = null
+
+function setupObserver() {
+  if (!sentinel.value) return
+  
+  observer = new IntersectionObserver(
+    (entries) => {
+      if (entries[0].isIntersecting && !props.isLoading && !props.isLoadingMore && props.hasMore) {
+        emit('loadMore')
+      }
+    },
+    {
+      rootMargin: '100px',
+    }
+  )
+  observer.observe(sentinel.value)
+}
+
+function cleanupObserver() {
+  if (observer) {
+    observer.disconnect()
+    observer = null
+  }
+}
+
+watch(() => sentinel.value, (newVal) => {
+  cleanupObserver()
+  if (newVal) {
+    setupObserver()
+  }
+})
+
+onMounted(() => {
+  setupObserver()
+})
+
+onUnmounted(() => {
+  cleanupObserver()
+})
 </script>
 
 <template>
@@ -37,5 +85,17 @@ defineProps<{
       :key="item.item_id"
       :item="item"
     />
+    
+    <div
+      ref="sentinel"
+      class="col-span-full h-4"
+    />
+    
+    <div
+      v-if="isLoadingMore"
+      class="col-span-full flex justify-center py-4"
+    >
+      <div class="animate-spin h-6 w-6 border-2 border-blue-500 border-t-transparent rounded-full" />
+    </div>
   </div>
 </template>

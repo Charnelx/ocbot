@@ -11,7 +11,7 @@ import { useSearch } from './composables/useSearch'
 import { useFilters } from './composables/useFilters'
 import type { SearchResultItem } from './types/search'
 
-const { query, mode, results, isLoading, error, totalMatches, totalFiltered, searchModeUsed, searchTimeSeconds, identifiedCategory, identifiedLabels, autoTunedThreshold, search } = useSearch()
+const { query, mode, results, isLoading, isLoadingMore, hasMore, error, totalMatches, totalFiltered, searchModeUsed, searchTimeSeconds, identifiedCategory, identifiedLabels, autoTunedThreshold, search, loadMore } = useSearch()
 const { filters, activeFilterCount, resetFilters, setFilter } = useFilters()
 
 const hasSearched = ref(false)
@@ -108,11 +108,14 @@ function handleSearch(q: string, searchMode: 'simple' | 'smart') {
           v-else-if="hasSearched"
           :results="sortedResults"
           :is-loading="isLoading"
+          :is-loading-more="isLoadingMore"
+          :has-more="hasMore"
+          @load-more="loadMore(query, mode, filters)"
         />
         
         <div v-else class="text-center py-12">
           <p class="text-gray-600 dark:text-gray-400 font-medium">
-            Press Enter or click Search to find parts
+            Press Enter or click Search to see latest parts
           </p>
         </div>
       </div>
