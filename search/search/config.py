@@ -25,7 +25,7 @@ class Settings(BaseSettings):
     score_weight_labels: float = Field(default=0.7)
     score_weight_cosine: float = Field(default=0.3)
     min_similarity: float = Field(default=0.2)
-    default_limit: int = Field(default=20)
+    default_limit: int = Field(default=21)
     max_limit: int = Field(default=100)
     max_query_chars: int = Field(default=500)
     wikipedia_timeout_seconds: float = Field(default=5.0)

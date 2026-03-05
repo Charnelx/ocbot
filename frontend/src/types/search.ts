@@ -75,7 +75,7 @@ export const DEFAULT_FILTERS: SearchFilters = {
   dateFrom: null,
   dateTo: null,
   sort: 'relevance',
-  limit: 20,
+  limit: 21,
   offset: 0,
   minScore: 0.6,
   scoreAutoTune: true,
