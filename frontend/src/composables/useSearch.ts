@@ -10,7 +10,7 @@ export function useSearch() {
   const results = ref<SearchResultItem[]>([])
   const isLoading = ref(false)
   const error = ref<string | null>(null)
-  const hasMore = ref(true)
+  const hasMore = ref(false)
   const isLoadingMore = ref(false)
   
   const totalMatches = ref<number | null>(null)
@@ -25,7 +25,6 @@ export function useSearch() {
     if (!append) {
       results.value = []
       filters = { ...filters, offset: 0 }
-      hasMore.value = true
     }
     
     isLoading.value = !append
@@ -49,7 +48,7 @@ export function useSearch() {
       identifiedLabels.value = response.identified_labels ?? null
       autoTunedThreshold.value = response.auto_tuned_threshold ?? null
       
-      hasMore.value = response.results.length > 0
+      hasMore.value = response.results.length > 0 && response.search_mode_used === 'latest'
       
     } catch (e) {
       error.value = e instanceof Error ? e.message : 'Search failed'
@@ -82,7 +81,7 @@ export function useSearch() {
     identifiedCategory.value = null
     identifiedLabels.value = null
     autoTunedThreshold.value = null
-    hasMore.value = true
+    hasMore.value = false
     error.value = null
   }
   
